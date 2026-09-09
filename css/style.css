@@ -1,0 +1,21 @@
+:root {
+  color-scheme: dark;
+  font-family: "Courier New", ui-monospace, monospace;
+  background: #120b08;
+  color: #fff1c7;
+}
+
+* { box-sizing: border-box; }
+html, body, #game-root { width: 100%; min-height: 100%; margin: 0; }
+body { min-height: 100svh; overflow: hidden; background: #120b08; }
+#game-root { position: fixed; inset: 0; }
+#game-root canvas { display: block; image-rendering: pixelated; }
+#ui-root { position: fixed; inset: 0; z-index: 10; pointer-events: none; }
+.ui-panel { pointer-events: auto; }
+.foundation-hud { position: absolute; inset: 0; padding: max(12px, env(safe-area-inset-top)) 14px 14px; display: flex; justify-content: space-between; align-items: flex-start; pointer-events: none; }
+.foundation-badge, .foundation-status { padding: 8px 10px; border: 1px solid rgba(240,199,101,.45); background: rgba(18,11,8,.82); box-shadow: 3px 3px 0 rgba(0,0,0,.35); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+.foundation-badge { color: #f0c765; }
+.foundation-status { color: #d8c99a; text-align: right; line-height: 1.5; }
+.foundation-button { margin-top: 10px; padding: 10px 12px; color: #120b08; border: 2px solid #f0c765; background: #f0c765; font: inherit; font-size: 10px; cursor: pointer; pointer-events: auto; }
+.foundation-button:focus-visible, .foundation-button:hover { background: #fff1c7; outline: 2px solid #9fe7ff; outline-offset: 2px; }
+@media (min-width: 700px) { .foundation-hud { padding-left: 24px; padding-right: 24px; } }
