@@ -73,6 +73,7 @@ export class BetaGameScene extends Phaser.Scene {
   }
 
   create() {
+    this.ensureSpriteTextures();
     this.createAnimations();
     this.createWorld();
     this.bindInput();
@@ -102,6 +103,103 @@ export class BetaGameScene extends Phaser.Scene {
       this.openMutationChoice();
     }
     this.emitHud();
+  }
+
+  /**
+   * Garante que toda spritesheet usada pela cena exista antes de criar animações.
+   * Quando o PNG real não está disponível (preview sem o storage externo, build de
+   * APK, CDN fora), gera uma textura procedural com a MESMA grade de frames
+   * (8 colunas × 3 linhas: idle 0-7, walk 8-15, carry/ability 16-23), então a
+   * colônia continua visível e animada — sem placeholders magenta nem crashes.
+   */
+  private ensureSpriteTextures() {
+    const specs: Array<{ key: string; frameWidth: number; frameHeight: number; color: number; kind: 'queen' | 'ant' | 'biomass' }> = [
+      { key: 'queen', frameWidth: SPRITE_ASSETS.queen.frameWidth, frameHeight: SPRITE_ASSETS.queen.frameHeight, color: 0xffcf4a, kind: 'queen' },
+      { key: 'worker', frameWidth: SPRITE_ASSETS.worker.frameWidth, frameHeight: SPRITE_ASSETS.worker.frameHeight, color: 0x55ff00, kind: 'ant' },
+      { key: 'biomass', frameWidth: SPRITE_ASSETS.biomass.frameWidth, frameHeight: SPRITE_ASSETS.biomass.frameHeight, color: 0x8dff5a, kind: 'biomass' },
+      { key: 'elite-spy', frameWidth: SPRITE_ASSETS.eliteSpy.frameWidth, frameHeight: SPRITE_ASSETS.eliteSpy.frameHeight, color: ELITE_ANT_PROFILES.spy.color, kind: 'ant' },
+      { key: 'elite-acid-spitter', frameWidth: SPRITE_ASSETS.eliteAcidSpitter.frameWidth, frameHeight: SPRITE_ASSETS.eliteAcidSpitter.frameHeight, color: ELITE_ANT_PROFILES.acid_spitter.color, kind: 'ant' },
+      { key: 'elite-giant', frameWidth: SPRITE_ASSETS.eliteGiant.frameWidth, frameHeight: SPRITE_ASSETS.eliteGiant.frameHeight, color: ELITE_ANT_PROFILES.giant.color, kind: 'ant' },
+      { key: 'elite-healer', frameWidth: SPRITE_ASSETS.eliteHealer.frameWidth, frameHeight: SPRITE_ASSETS.eliteHealer.frameHeight, color: ELITE_ANT_PROFILES.healer.color, kind: 'ant' },
+    ];
+    for (const spec of specs) {
+      if (this.textures.exists(spec.key)) continue;
+      this.makeFallbackSheet(spec.key, spec.frameWidth, spec.frameHeight, spec.color, spec.kind);
+    }
+  }
+
+  private makeFallbackSheet(key: string, frameWidth: number, frameHeight: number, color: number, kind: 'queen' | 'ant' | 'biomass') {
+    const cols = 8;
+    const rows = 3;
+    const canvas = this.textures.createCanvas(key, frameWidth * cols, frameHeight * rows);
+    if (!canvas) return;
+    const ctx = canvas.getContext();
+    const css = `#${color.toString(16).padStart(6, '0')}`;
+    for (let frame = 0; frame < cols * rows; frame += 1) {
+      const col = frame % cols;
+      const row = Math.floor(frame / cols);
+      this.drawFallbackFrame(ctx, col * frameWidth, row * frameHeight, frameWidth, frameHeight, css, kind, row, col);
+    }
+    for (let frame = 0; frame < cols * rows; frame += 1) {
+      canvas.add(frame.toString(), 0, (frame % cols) * frameWidth, Math.floor(frame / cols) * frameHeight, frameWidth, frameHeight);
+    }
+    canvas.refresh();
+  }
+
+  private drawFallbackFrame(ctx: CanvasRenderingContext2D, ox: number, oy: number, w: number, h: number, css: string, kind: 'queen' | 'ant' | 'biomass', row: number, col: number) {
+    const cx = ox + w / 2;
+    const cy = oy + h / 2;
+    const bob = row === 0 ? Math.round(Math.sin((col / 8) * Math.PI * 2) * 2) : 0;
+    const leg = row === 1 ? (col % 2 === 0 ? 2 : -2) : 0;
+    ctx.save();
+    if (kind === 'biomass') {
+      const radius = Math.max(3, (w / 2 - 5) * (0.8 + 0.2 * Math.abs(Math.sin(col + 1))));
+      ctx.globalAlpha = 0.85;
+      ctx.fillStyle = css;
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = '#eaffd0';
+      ctx.fillRect(cx - 2, cy - 2, 4, 4);
+      ctx.restore();
+      return;
+    }
+    const scale = kind === 'queen' ? 1.6 : 1;
+    const seg = Math.max(3, Math.round(3 * scale));
+    ctx.fillStyle = css;
+    ctx.strokeStyle = css;
+    ctx.lineWidth = Math.max(1, Math.round(scale));
+    for (let i = -1; i <= 1; i += 1) {
+      ctx.beginPath();
+      ctx.moveTo(cx - seg, cy + i * 4 * scale + bob);
+      ctx.lineTo(cx - seg - 4 * scale, cy + i * 4 * scale + leg + bob);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(cx + seg, cy + i * 4 * scale + bob);
+      ctx.lineTo(cx + seg + 4 * scale, cy + i * 4 * scale - leg + bob);
+      ctx.stroke();
+    }
+    ctx.beginPath();
+    ctx.ellipse(cx, cy + 6 * scale + bob, seg + 2, seg + 3, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(cx, cy + bob, seg, seg, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(cx, cy - 6 * scale + bob, seg, seg - 1, 0, 0, Math.PI * 2);
+    ctx.fill();
+    if (kind === 'queen') {
+      ctx.fillStyle = '#ff5b4d';
+      ctx.fillRect(cx - 4, cy - 6 * scale - seg - 3 + bob, 8, 3);
+    }
+    if (row === 2) {
+      ctx.fillStyle = '#ffb800';
+      ctx.beginPath();
+      ctx.arc(cx, cy - 8 * scale + bob, 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
   }
 
   private createAnimations() {

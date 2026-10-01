@@ -100,3 +100,21 @@
 }
 
 @media (max-width: 700px) { .progression-dialog { max-height: 90vh; padding: 18px 14px; }.progression-grid { grid-template-columns: repeat(2, 1fr); }.progression-node { min-height: 136px; padding: 8px; }.progression-node strong { font-size: 9px; }.progression-node p { font-size: 9px; }.jelly-wallet strong { font-size: 21px; } }
+
+/* ===== ABA TESTE · ferramentas de playtest ===== */
+.test-dialog { width: min(760px, 100%); max-height: 88vh; overflow-y: auto; }
+.menu-test { display: grid; gap: 13px; }
+.test-hint { margin: 0; color: #8f7c61; font-size: 10px; line-height: 1.6; letter-spacing: .04em; }
+.test-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.test-grid b { padding: 10px 11px; color: #55ff00; border: 1px solid #3d2817; background: rgba(61,40,23,.45); font-size: 16px; word-break: break-all; }
+.test-grid small { display: block; margin-top: 5px; color: #b8c28f; font-size: 8px; letter-spacing: .1em; }
+.test-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.test-button { position: relative; display: grid; gap: 3px; padding: 10px 14px; color: #1a1512; border: 2px solid #ffb800; background: #ffb800; cursor: pointer; font-family: var(--fumiga-hud); font-size: 11px; letter-spacing: .08em; overflow: hidden; text-align: left; }
+.test-button:hover, .test-button:focus-visible { transform: translateY(-2px); outline: none; }
+.test-button small { font-size: 8px; letter-spacing: .1em; opacity: .8; }
+.test-button.primary { border-color: #55ff00; background: #55ff00; }
+.test-button.danger { border-color: #DF1962; background: #DF1962; color: #fff3c4; }
+.test-button input[type='file'] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.test-preview { max-height: 250px; margin: 0; padding: 12px; overflow: auto; color: #d8c99a; border: 1px solid rgba(255,184,0,.35); background: #120e0b; font-size: 10px; line-height: 1.55; white-space: pre-wrap; word-break: break-word; }
+.test-status { margin: 0; padding: 8px 10px; color: #b8c28f; border-left: 3px solid #55ff00; background: rgba(61,40,23,.55); font-size: 10px; }
+@media (max-width: 700px) { .test-dialog { max-height: 90vh; padding: 20px 14px; }.test-grid { grid-template-columns: repeat(2, 1fr); }.test-grid b { font-size: 13px; } }
